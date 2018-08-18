@@ -36,9 +36,9 @@ class WebCam extends Component {
     var outputContext = outputCanvas.getContext('2d');
     context.drawImage(video, 0, 0, this.state.width, this.state.height);
 
-    for(var x = 0; x < (this.state.width - this.state.cellSize); x += this.state.cellSize)
+    for(var x = 0; x < (this.state.width); x += this.state.cellSize)
     {
-      for(var y = 0; y < (this.state.height - this.state.cellSize); y += this.state.cellSize)
+      for(var y = 0; y < (this.state.height); y += this.state.cellSize)
       {
         var pixels = context.getImageData(x, y, this.state.cellSize, this.state.cellSize);
         var newColour = this.getRGB(this.getAverageHue(pixels, this.state.cellSize), 0.75, 0.6);
@@ -111,7 +111,7 @@ class WebCam extends Component {
       sumCos += Math.cos(radians);
     }
 
-    var averageHue = Math.atan2(sumSin, sumCos) * (180.0 / Math.PI);
+    var averageHue = ((Math.atan2(sumSin, sumCos) * (180.0 / Math.PI)) + 360 ) % 360;
 
     return averageHue;
   }
@@ -158,7 +158,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <WebCam width='640' height='480' cellSize='40'/>
+        <WebCam width='640' height='480' cellSize='20'/>
       </div>
     );
   }
