@@ -146,7 +146,7 @@ class WebCam extends Component {
   render() {
     return (
       <div id="webcam">
-        <canvas id="tempCanvas" width={this.state.width} height={this.state.height}></canvas>
+        <canvas id="tempCanvas" width={this.state.width} height={this.state.height} hidden="true"></canvas>
         <video id="video" src={this.state.videoSrc} autoPlay="true" hidden="true" width={this.state.width} height={this.state.height}></video>
         <canvas id="outputCanvas" width={this.state.width} height={this.state.height} visible="true"></canvas>
       </div>
