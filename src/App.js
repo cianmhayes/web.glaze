@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-//import logo from './logo.svg';
+import {Colour} from './colour.js';
 import './App.css';
 
-function floatEquals(lhs, rhs){
-  return Math.abs(lhs - rhs) < 0.00000001;
-}
 
 class WebCam extends Component {
   constructor(props){
@@ -41,7 +38,7 @@ class WebCam extends Component {
       for(var y = 0; y < (this.state.height); y += this.state.cellSize)
       {
         var pixels = context.getImageData(x, y, this.state.cellSize, this.state.cellSize);
-        var newColour = this.getRGB(this.getAverageHue(pixels, this.state.cellSize), 0.75, 0.6);
+        var newColour = Colour.getRGB(this.getAverageHue(pixels, this.state.cellSize), 0.75, 0.6);
 
         var byteCount = this.state.cellSize * this.state.cellSize * 4;
         var newPixels = outputContext.createImageData(this.state.cellSize, this.state.cellSize);
@@ -58,46 +55,6 @@ class WebCam extends Component {
     }
   }
 
-  getRGB(h, s, l)
-  {
-    var c = (1 - Math.abs((l * 2) - 1)) * s;
-    var hPrime = h / 60.0;
-    var x = c * (1 - Math.abs((hPrime % 2) - 1));
-    var m = l - (0.5 * c);
-
-    var result = {r: 0, g: 0, b: 0};
-    if(hPrime <= 1)
-    {
-      result = {r:c, g:x, b: 0};
-    }
-    else if(hPrime <= 2)
-    {
-      result = {r:x, g:c, b:0};
-    }
-    else if(hPrime <= 3)
-    {
-      result = {r:0, g:c, b:x};
-    }
-    else if(hPrime <= 4)
-    {
-      result = {r:0, g:x, b:c};
-    }
-    else if(hPrime <= 5)
-    {
-      result = {r:x, g:0, b:c};
-    }
-    else if(hPrime <= 6)
-    {
-      result = {r:c, g:0, b:x};
-    }
-
-    result.r = (result.r + m) * 255;
-    result.g = (result.g + m) * 255;
-    result.b = (result.b + m) * 255;
-
-    return result;
-  }
-
   getAverageHue(pixels, cellSize){
     var totalHue = 0;
     var pixelCount = (pixels.height * pixels.width * 4);
@@ -105,7 +62,7 @@ class WebCam extends Component {
     var sumCos = 0;
     for(var p = 0; p < pixelCount; p += 4)
     {
-      var hue = this.getHue(pixels.data[p] / 255.0, pixels.data[p+1] / 255.0, pixels.data[p+2] / 255.0);
+      var hue = Colour.getHue(pixels.data[p] / 255.0, pixels.data[p+1] / 255.0, pixels.data[p+2] / 255.0);
       var radians = hue * (Math.PI / 180.0);
       sumSin += Math.sin(radians);
       sumCos += Math.cos(radians);
@@ -114,33 +71,6 @@ class WebCam extends Component {
     var averageHue = ((Math.atan2(sumSin, sumCos) * (180.0 / Math.PI)) + 360 ) % 360;
 
     return averageHue;
-  }
-
-  getHue(r, g, b)
-  {
-    
-    var max = Math.max(r, g, b);
-    var min = Math.min(r, g, b);
-    var c = max - min;
-    var hPrime = 0;
-    if(floatEquals(c,0))
-    {
-      hPrime = 0;
-    }
-    else if(floatEquals(max,r))
-    {
-      hPrime = ((g - b) / c) % 6;
-    }
-    else if(floatEquals(max,g))
-    {
-      hPrime = ((b - r) / c) + 2;
-    }
-    else if(floatEquals(max,b))
-    {
-      hPrime = ((r -g) / c) + 4;
-    }
-
-    return hPrime * 60;
   }
 
   render() {
