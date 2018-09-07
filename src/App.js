@@ -22,7 +22,7 @@ class WebCam extends Component {
 
   initializeVideo(stream){
     this.setState({videoSrc: window.URL.createObjectURL(stream)});
-    this.timerId = setInterval( () => this.tick(), 100);
+    this.timerId = setInterval( () => this.tick(), 40);
   }
 
   videoError(){
@@ -146,7 +146,7 @@ class WebCam extends Component {
   render() {
     return (
       <div id="webcam">
-        <canvas id="tempCanvas" width={this.state.width} height={this.state.height} hidden="true"></canvas>
+        <canvas id="tempCanvas" width={this.state.width} height={this.state.height} style={{display: 'none'}}></canvas>
         <video id="video" src={this.state.videoSrc} autoPlay="true" hidden="true" width={this.state.width} height={this.state.height}></video>
         <canvas id="outputCanvas" width={this.state.width} height={this.state.height} visible="true"></canvas>
       </div>
