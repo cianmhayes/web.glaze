@@ -55,6 +55,23 @@ export class Colour {
       return Math.abs(lhs - rhs) <= epsilon;
     }
 
+    static getLuma(r, g, b){
+      return (0.3 * r) + (0.59 * g) + (0.11 * b);
+    }
+
+    static getAverageLuma(rgbaPixels)
+    {
+      var totalLuma = 0;
+      var count = 0;
+      for(var p = 0; p < rgbaPixels.length; p += 4)
+      {
+        totalLuma += this.getLuma(rgbaPixels[p], rgbaPixels[p+1], rgbaPixels[p+2]);
+        count++;
+      }
+
+      return totalLuma / count;
+    }
+
     static getHue(r, g, b){
         var max = Math.max(r, g, b);
         var min = Math.min(r, g, b);

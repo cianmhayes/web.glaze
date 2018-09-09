@@ -13,8 +13,7 @@ class WebCam extends Component {
       inputWidth: parseInt(props.inputWidth),
       inputHeight: parseInt(props.inputHeight),
       inputCellSize: parseInt(props.inputCellSize)};
-
-    //this.handleFullScreenChange = this.handleFullScreenChange.bind(this);
+    this.imageStyle = "ArrowLeft";
   }
 
   handleFullScreenChange(){
@@ -40,6 +39,7 @@ class WebCam extends Component {
         navigator.getUserMedia({video: true, width: this.state.inputWidth, height: this.state.inputHeight}, this.initializeVideo.bind(this), this.videoError);
     }
 
+    document.onkeyup = this.toggleImageStyle.bind(this);
     document.onwebkitfullscreenchange = this.handleFullScreenChange.bind(this);
     document.onmozfullscreenchange = this.handleFullScreenChange.bind(this);
     document.onfullscreenchange = this.handleFullScreenChange.bind(this);
@@ -72,9 +72,19 @@ class WebCam extends Component {
           this.canvasDivisions.sourceY[j],
           this.canvasDivisions.sourceCellWidth[i],
           this.canvasDivisions.sourceCellHeight[j]);
-        var newColour = Colour.getRGB(this.getAverageHue(pixels.data), 0.75, 0.6);
         var newPixels = this.outputContext.createImageData(this.canvasDivisions.destinationCellWidth[i], this.canvasDivisions.destinationCellHeight[j]);
-        //var byteCount = this.state.inputCellSize * this.state.inputCellSize * 4;
+
+        var newColour = {r: 0, g: 0, b:0};
+        switch(this.imageStyle){
+          case "ArrowRight":
+            newColour = Colour.getRGB(this.getAverageHue(pixels.data), 0.75, 0.6);
+            break;
+          case "ArrowLeft":
+            var luma = Colour.getAverageLuma(pixels.data);
+            newColour = {r: luma, g: luma, b: luma};
+            break;
+        }
+        
         for(var p = 0; p < newPixels.data.length; p += 4)
         {
           newPixels.data[p] = newColour.r;
@@ -121,6 +131,15 @@ class WebCam extends Component {
     }
     else {
       canvas.mozRequestFullScreen();
+    }
+  }
+
+  toggleImageStyle(e){
+    e.preventDefault();
+    switch(e.key){
+      case "ArrowLeft":
+      case "ArrowRight":
+        this.imageStyle = e.key;
     }
   }
 
