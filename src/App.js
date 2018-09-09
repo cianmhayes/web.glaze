@@ -1,56 +1,96 @@
 import React, { Component } from 'react';
-import {Colour} from './colour.js';
+import { Colour } from './colour.js';
+import { Image } from './image.js';
 import './App.css';
-
 
 class WebCam extends Component {
   constructor(props){
     super();
-    this.state = {videoSrc: null, width: parseInt(props.width), height: parseInt(props.height), cellSize: parseInt(props.cellSize)}
+    this.state = {
+      videoSrc: null,
+      defaultOutputWidth: parseInt(props.defaultOutputWidth),
+      defaultOutputHeight: parseInt(props.defaultOutputHeight),
+      inputWidth: parseInt(props.inputWidth),
+      inputHeight: parseInt(props.inputHeight),
+      inputCellSize: parseInt(props.inputCellSize)};
+
+    //this.handleFullScreenChange = this.handleFullScreenChange.bind(this);
+  }
+
+  handleFullScreenChange(){
+    var canvas = document.querySelector("#outputCanvas");
+    if(document.webkitIsFullScreen || document.mozIsFullScreen)
+    {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      this.canvasDivisions = Image.divideCanvases(this.state.inputWidth, this.state.inputHeight, window.innerWidth, window.innerHeight, this.state.inputCellSize / 2);
+    }
+    else
+    {
+      canvas.width = this.state.defaultOutputWidth;
+      canvas.height = this.state.defaultOutputHeight;
+      this.canvasDivisions = Image.divideCanvases(this.state.inputWidth, this.state.inputHeight, this.state.defaultOutputWidth, this.state.defaultOutputHeight, this.state.inputCellSize);
+    }
   }
 
   componentDidMount(){
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
     if (navigator.getUserMedia) {
-        navigator.getUserMedia({video: true, width: this.state.width, height: this.state.height}, this.initializeVideo.bind(this), this.videoError);
+        navigator.getUserMedia({video: true, width: this.state.inputWidth, height: this.state.inputHeight}, this.initializeVideo.bind(this), this.videoError);
     }
+
+    document.onwebkitfullscreenchange = this.handleFullScreenChange.bind(this);
+    document.onmozfullscreenchange = this.handleFullScreenChange.bind(this);
+    document.onfullscreenchange = this.handleFullScreenChange.bind(this);
   }
 
   initializeVideo(stream){
     this.setState({videoSrc: window.URL.createObjectURL(stream)});
     this.timerId = setInterval( this.tick.bind(this), 40);
+    this.video = document.querySelector("#video");
+    this.canvas = document.querySelector("#tempCanvas");
+    this.outputCanvas = document.querySelector("#outputCanvas");
+    this.context = this.canvas.getContext('2d');
+    this.outputContext = this.outputCanvas.getContext('2d');
+
+    this.canvasDivisions = Image.divideCanvases(this.state.inputWidth, this.state.inputHeight, this.state.defaultOutputWidth, this.state.defaultOutputHeight, this.state.inputCellSize);
   }
 
   videoError(){
   }
 
   tick(){
-    var video = document.querySelector("#video");
-    var canvas = document.querySelector("#tempCanvas");
-    var outputCanvas = document.querySelector("#outputCanvas");
-    var context = canvas.getContext('2d');
-    var outputContext = outputCanvas.getContext('2d');
-    context.drawImage(video, 0, 0, this.state.width, this.state.height);
+    this.context.drawImage(this.video, 0, 0, this.state.inputWidth, this.state.inputHeight);
 
-    for(var x = 0; x < (this.state.width); x += this.state.cellSize)
+    for(var i = 0; i < this.canvasDivisions.horizontalDivisions; i++)
     {
-      for(var y = 0; y < (this.state.height); y += this.state.cellSize)
+      for(var j = 0; j < this.canvasDivisions.verticalDivisions; j++)
       {
-        var pixels = context.getImageData(x, y, this.state.cellSize, this.state.cellSize);
+        var pixels = this.context.getImageData(
+          this.canvasDivisions.sourceX[i],
+          this.canvasDivisions.sourceY[j],
+          this.canvasDivisions.sourceCellWidth[i],
+          this.canvasDivisions.sourceCellHeight[j]);
         var newColour = Colour.getRGB(this.getAverageHue(pixels.data), 0.75, 0.6);
-
-        var byteCount = this.state.cellSize * this.state.cellSize * 4;
-        var newPixels = outputContext.createImageData(this.state.cellSize, this.state.cellSize);
-        for(var i = 0; i < byteCount; i += 4)
+        var newPixels = this.outputContext.createImageData(this.canvasDivisions.destinationCellWidth[i], this.canvasDivisions.destinationCellHeight[j]);
+        //var byteCount = this.state.inputCellSize * this.state.inputCellSize * 4;
+        for(var p = 0; p < newPixels.data.length; p += 4)
         {
-          newPixels.data[i] = newColour.r;
-          newPixels.data[i + 1] = newColour.g;
-          newPixels.data[i + 2] = newColour.b;
-          newPixels.data[i + 3] = 255;
+          newPixels.data[p] = newColour.r;
+          newPixels.data[p + 1] = newColour.g;
+          newPixels.data[p + 2] = newColour.b;
+          newPixels.data[p + 3] = 255;
         }
 
-        outputContext.putImageData(newPixels, x, y, 0, 0, this.state.cellSize, this.state.cellSize);
+        this.outputContext.putImageData(
+          newPixels,
+          this.canvasDivisions.destinationX[i],
+          this.canvasDivisions.destinationY[j],
+          0,
+          0,
+          this.canvasDivisions.destinationCellWidth[i],
+          this.canvasDivisions.destinationCellHeight[j]);
       }
     }
   }
@@ -72,12 +112,29 @@ class WebCam extends Component {
     return averageHue;
   }
 
+  goFullScreen(e) {
+    e.preventDefault();
+
+    var canvas = document.querySelector("#outputCanvas");
+    if(canvas.webkitRequestFullScreen) {
+      canvas.webkitRequestFullScreen();
+    }
+    else {
+      canvas.mozRequestFullScreen();
+    }
+  }
+
   render() {
     return (
       <div id="webcam">
-        <canvas id="tempCanvas" width={this.state.width} height={this.state.height} style={{display: 'none'}}></canvas>
-        <video id="video" src={this.state.videoSrc} autoPlay="true" hidden="true" width={this.state.width} height={this.state.height}></video>
-        <canvas id="outputCanvas" width={this.state.width} height={this.state.height} visible="true"></canvas>
+        <div>
+          <canvas id="tempCanvas" width={this.state.inputWidth} height={this.state.inputHeight} style={{display: 'none'}}></canvas>
+          <video id="video" src={this.state.videoSrc} autoPlay="true" hidden="true" width={this.state.width} height={this.state.height}></video>
+          <canvas id="outputCanvas" width={this.state.defaultOutputWidth} height={this.state.defaultOutputHeight} visible="true"></canvas>
+        </div>
+        <div>
+          <a href="#" onClick={this.goFullScreen.bind(this)}>Full-screen</a>
+        </div>
       </div>
     );
   }
@@ -87,7 +144,12 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <WebCam width='640' height='480' cellSize='20'/>
+        <WebCam
+          defaultOutputWidth='640'
+          defaultOutputHeight='480'
+          inputWidth='640'
+          inputHeight='480'
+          inputCellSize='20'/>
       </div>
     );
   }
