@@ -19,7 +19,7 @@ class WebCam extends Component {
 
   initializeVideo(stream){
     this.setState({videoSrc: window.URL.createObjectURL(stream)});
-    this.timerId = setInterval( () => this.tick(), 40);
+    this.timerId = setInterval( this.tick.bind(this), 40);
   }
 
   videoError(){
@@ -38,7 +38,7 @@ class WebCam extends Component {
       for(var y = 0; y < (this.state.height); y += this.state.cellSize)
       {
         var pixels = context.getImageData(x, y, this.state.cellSize, this.state.cellSize);
-        var newColour = Colour.getRGB(this.getAverageHue(pixels, this.state.cellSize), 0.75, 0.6);
+        var newColour = Colour.getRGB(this.getAverageHue(pixels.data), 0.75, 0.6);
 
         var byteCount = this.state.cellSize * this.state.cellSize * 4;
         var newPixels = outputContext.createImageData(this.state.cellSize, this.state.cellSize);
@@ -55,20 +55,19 @@ class WebCam extends Component {
     }
   }
 
-  getAverageHue(pixels, cellSize){
-    var totalHue = 0;
-    var pixelCount = (pixels.height * pixels.width * 4);
+  getAverageHue(rgbaPixels){
     var sumSin = 0;
     var sumCos = 0;
+    var pixelCount = rgbaPixels.length;
     for(var p = 0; p < pixelCount; p += 4)
     {
-      var hue = Colour.getHue(pixels.data[p] / 255.0, pixels.data[p+1] / 255.0, pixels.data[p+2] / 255.0);
-      var radians = hue * (Math.PI / 180.0);
+      var hue = Colour.getHue(rgbaPixels[p] / 255.0, rgbaPixels[p+1] / 255.0, rgbaPixels[p+2] / 255.0);
+      var radians = Colour.toRadians(hue);
       sumSin += Math.sin(radians);
       sumCos += Math.cos(radians);
     }
 
-    var averageHue = ((Math.atan2(sumSin, sumCos) * (180.0 / Math.PI)) + 360 ) % 360;
+    var averageHue = Colour.toDegrees(Math.atan2(sumSin, sumCos));
 
     return averageHue;
   }

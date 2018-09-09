@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "flux": "^3.1.3",
-    "mathjs": "^5.1.1",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-scripts": "1.1.4"
@@ -14,6 +13,12 @@
     "babel-core": "^6.26.3",
     "babel-preset-es2015": "^6.24.1",
     "chai": "^4.1.2",
+    "eslint": "^5.5.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
     "grunt": "latest",
     "grunt-mocha": "^1.1.0",
     "mocha": "^5.2.0"

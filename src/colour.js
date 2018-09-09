@@ -1,34 +1,44 @@
-import * as math from 'mathjs'
+
+const epsilon = 0.000001;
 
 export class Colour {
+
+  static toRadians(degrees){
+    return degrees  * (Math.PI / 180.0);
+  }
+
+  static toDegrees(radians){
+    return ((radians  * (180.0 / Math.PI)) + 360 ) % 360;
+  }
+
     static getRGB(h, s, l){
-        var c = (1 - math.abs((l * 2) - 1)) * s;
+        var c = (1 - Math.abs((l * 2) - 1)) * s;
         var hPrime = h / 60.0;
-        var x = c * (1 - math.abs((hPrime % 2) - 1));
+        var x = c * (1 - Math.abs((hPrime % 2) - 1));
         var m = l - (0.5 * c);
     
         var result = {r: 0, g: 0, b: 0};
-        if(math.smallerEq(hPrime,1))
+        if(hPrime <= 1)
         {
           result = {r:c, g:x, b: 0};
         }
-        else if(math.smallerEq(hPrime,2))
+        else if(hPrime <= 2)
         {
           result = {r:x, g:c, b:0};
         }
-        else if(math.smallerEq(hPrime,3))
+        else if(hPrime <= 3)
         {
           result = {r:0, g:c, b:x};
         }
-        else if(math.smallerEq(hPrime,4))
+        else if(hPrime <= 4)
         {
           result = {r:0, g:x, b:c};
         }
-        else if(math.smallerEq(hPrime,5))
+        else if(hPrime <= 5)
         {
           result = {r:x, g:0, b:c};
         }
-        else if(math.smallerEq(hPrime,6))
+        else if(hPrime <= 6)
         {
           result = {r:c, g:0, b:x};
         }
@@ -40,24 +50,29 @@ export class Colour {
         return result;
     }
 
+    static areEqual(lhs, rhs)
+    {
+      return Math.abs(lhs - rhs) <= epsilon;
+    }
+
     static getHue(r, g, b){
-        var max = math.max(r, g, b);
-        var min = math.min(r, g, b);
+        var max = Math.max(r, g, b);
+        var min = Math.min(r, g, b);
         var c = max - min;
         var hPrime = 0;
-        if(math.equal(c,0))
+        if(Colour.areEqual(c,0))
         {
           hPrime = 0;
         }
-        else if(math.equal(max,r))
+        else if(Colour.areEqual(max,r))
         {
           hPrime = ((g - b) / c) % 6;
         }
-        else if(math.equal(max,g))
+        else if(Colour.areEqual(max,g))
         {
           hPrime = ((b - r) / c) + 2;
         }
-        else if(math.equal(max,b))
+        else if(Colour.areEqual(max,b))
         {
           hPrime = ((r -g) / c) + 4;
         }
